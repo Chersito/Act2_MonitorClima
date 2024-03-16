@@ -1,5 +1,4 @@
 // Se importa libreria que representa la hora del sistema
-import java.time.LocalTime;
 import java.util.Random;
 
 class Temp extends Thread{
@@ -23,12 +22,12 @@ class Temp extends Thread{
             tempVect[i] = temperatura;
             System.out.println("    Registrando --->    " + getName() + "[" + i + "]= " + temperatura + "°C");
             try {
-                Thread.sleep(2000);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-        System.out.println("Hilo de temperatura terminado.");
+        System.out.println("Termina el sensor de " + getName());
     }
 }
 
@@ -43,16 +42,21 @@ class Hum extends Thread{
         this.maxHum = maxHum;
     }
     @Override
-    public void run(){
+    public void run() {
         Random random = new Random();
-        System.out.println("    Registrando --->     "+ getName()+": Nuevo hilo " + " (" + LocalTime.now() + ")");
+        System.out.println("Inicia sensor de " + this.getName());
 
-
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        for (int i = 0; i < humVect.length; i++) {
+            int humedad = random.nextInt(maxHum - minHum + 1) + minHum;
+            humVect[i] = humedad;
+            System.out.println("    Registrando --->        " + getName() + "[" + i + "]= " + humedad + "%");
+            try {
+                Thread.sleep(1000); // Simular una hora de intervalo
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
+        System.out.println("Termina el sensor de " + getName());
     }
 }
 
@@ -70,5 +74,41 @@ public class MonitorClima{
         
         thread1.setName("Temperatura");
         thread2.setName("Humedad");
+        
+        thread1.start();
+        thread2.start();
+
+        if (thread1.isAlive() && thread2.isAlive()) {
+            System.out.println("main: El hilo Temperatura activo");
+            System.out.println("main: El hilo Humedad activo");
+        }
+        
+        thread1.join();
+        thread2.join();
+
+        int tempSum = 0;
+        int minHumedadDay = humVect[0];
+        int maxHumedadDay = humVect[0];
+
+        for (int temperatura : tempVect) {
+            tempSum += temperatura;
+        }
+
+        float promedioTemp = (float) tempSum / tempVect.length;
+
+        for (int humedad : humVect) {
+            if (humedad < minHumedadDay) {
+                minHumedadDay = humedad;
+            }
+            if (humedad > maxHumedadDay) {
+                maxHumedadDay = humedad;
+            }
+        }
+
+        System.out.println("-----------------------------------------");
+        System.out.println("main: Temperatura promedio = " + promedioTemp );
+        System.out.println("main: Humedad minima: " + minHumedadDay );
+        System.out.println("main: Huemdad maxima: " + maxHumedadDay);
+        System.out.println("-----------------------------------------");
     }
 }
